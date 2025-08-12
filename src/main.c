@@ -53,11 +53,7 @@ int main(int argc, char *argv[]) {
 			free(header);
 			return -1;
 		}
-		if((output_file(dbfd, header, NULL)) == -1) {
-			printf("Unable to write the database header\n");
-			free(header);
-			return -1;
-		}
+
 		//validate the header
 		header = calloc(1, sizeof(struct dbheader_t));
 		if(header == NULL) {
@@ -68,6 +64,13 @@ int main(int argc, char *argv[]) {
 		header->filesize = sizeof(struct dbheader_t);
 		header->count = 0;
 		header->magic = HEADER_MAGIC;
+		if((output_file(dbfd, header, NULL)) == -1) {
+			printf("Unable to write the database header\n");
+			close(dbfd);
+			free(header);
+			return -1;
+		}
+		
 	} else {
 		dbfd = open_db_file(file_path);
 		if(dbfd == STATUS_ERROR) {
@@ -78,8 +81,12 @@ int main(int argc, char *argv[]) {
 		
 		if((validate_db_header(dbfd, &header)) == -1) {
 			printf("Unable to validate the db header\n");
+			close(dbfd);
 			free(header);
 			return -1;
+		} else {
+			printf("Database header is Ok!\n");
+			return 0;
 		}
 	}
 }
