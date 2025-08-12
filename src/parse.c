@@ -93,7 +93,18 @@ int validate_db_header(int fd, struct dbheader_t **headerOut) {
 }
 
 int create_db_header(int fd, struct dbheader_t **headerOut) {
-
+	struct dbheader_t *header = NULL;
+	header = calloc(1, sizeof(struct dbheader_t));
+	if(header == NULL) {
+		perror("calloc");
+		return STATUS_ERROR;
+	}
+	header->version = 1;
+	header->filesize = sizeof(struct dbheader_t);
+	header->count = 0;
+	header->magic = HEADER_MAGIC;
+	*headerOut = header;
+	return 0;
 }
 
 

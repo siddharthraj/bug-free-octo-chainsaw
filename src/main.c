@@ -54,16 +54,15 @@ int main(int argc, char *argv[]) {
 			return -1;
 		}
 
-		//validate the header
-		header = calloc(1, sizeof(struct dbheader_t));
-		if(header == NULL) {
-			perror("calloc");
+		//create the header
+		if((create_db_header(dbfd, &header)) == -1) {
+			printf("Unable to create the database header\n");
+			close(dbfd);
+			free(header);
 			return -1;
+
 		}
-		header->version = 1;
-		header->filesize = sizeof(struct dbheader_t);
-		header->count = 0;
-		header->magic = HEADER_MAGIC;
+		//write to the new file
 		if((output_file(dbfd, header, NULL)) == -1) {
 			printf("Unable to write the database header\n");
 			close(dbfd);
