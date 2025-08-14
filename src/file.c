@@ -23,6 +23,7 @@ int create_db_file(char *filename) {
 		perror("open");
 		return STATUS_ERROR;
 	}
+	printf("File created with header %d\n", fd);
 	return fd;
 }
 
@@ -34,6 +35,7 @@ int open_db_file(char *filename) {
 		printf("ERROR: File not found %s\n", filename);
 		return STATUS_ERROR;
 	}
+	printf("File opened with fd: %d\n", fd);
 
 	return fd;
 

@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <getopt.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "common.h"
 #include "file.h"
@@ -20,19 +21,25 @@ int main(int argc, char *argv[]) {
 	int c;
 
 	struct dbheader_t *header = NULL;
+
+	char *new_emp = NULL;
 	
 	int dbfd;
 
-	while((c = getopt(argc, argv, "nf:a")) != -1) {
+	while((c = getopt(argc, argv, "nf:a:")) != -1) {
 		switch(c) {
 			case 'n':
 				new_file = true;
+				printf("New file to be created\n");
 				break;
 			case 'f':
 				file_path = optarg;
+				printf("File to be opened: %s\n", file_path);
 				break;
 			case 'a':
-				printf("Add a new record\n");
+				if(optarg != NULL) {
+					new_emp = optarg;
+				}
 				break;
 			default:
 				return -1;
@@ -69,15 +76,16 @@ int main(int argc, char *argv[]) {
 			free(header);
 			return -1;
 		}
+		printf("Header written to new file: %d\n", dbfd);
 		
 	} else {
+		printf("Trying to open existing file..\n");
 		dbfd = open_db_file(file_path);
 		if(dbfd == STATUS_ERROR) {
 			printf("Unable to open the database file\n");
 			free(header);
 			return -1;
 		}
-		
 		if((validate_db_header(dbfd, &header)) == -1) {
 			printf("Unable to validate the db header\n");
 			close(dbfd);
@@ -85,7 +93,25 @@ int main(int argc, char *argv[]) {
 			return -1;
 		} else {
 			printf("Database header is Ok!\n");
-			return 0;
 		}
+		printf("Existing employees: %d\n", header->count);
+	}
+	printf("File header: %d\n", dbfd);
+
+	//reading the employees first
+	struct employee_t *employees = {0};
+	read_employees(dbfd, header, &employees); 
+
+	if(new_emp != NULL) {
+		header->count++;
+		printf("New header count: %d\n", header->count);
+			
+		employees = realloc(employees, sizeof(struct employee_t)*header->count); 
+		if(employees == NULL) {
+			perror("realloc");
+			return -1;
+		}
+		add_employee(header, employees, new_emp);
+		output_file(dbfd, header, employees);
 	}
 }
